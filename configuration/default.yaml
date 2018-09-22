@@ -1,10 +1,11 @@
 ---
-zookeeper: zookeeper:2181
+brokers:
+- localhost:2181
 
 topics:
 - name: some-topic
   replication-factor: 1
-  partitions: 1
+  partitions: 4
   config:
     cleanup.policy: compact
     compression.type: producer

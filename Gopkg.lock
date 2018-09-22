@@ -2,23 +2,46 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/tatsushid/go-fastping"
+  name = "github.com/alecthomas/kingpin"
   packages = ["."]
-  revision = "d7bb493dee3e090e2ffb6914adddf17c1e7c026c"
+  revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
+  version = "v2.2.6"
 
 [[projects]]
   branch = "master"
-  name = "golang.org/x/net"
+  name = "github.com/alecthomas/template"
   packages = [
-    "bpf",
-    "icmp",
-    "internal/iana",
-    "internal/socket",
-    "ipv4",
-    "ipv6"
+    ".",
+    "parse"
   ]
-  revision = "26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2"
+  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/alecthomas/units"
+  packages = ["."]
+  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+
+[[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
+  version = "v1.0.6"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "d47a0f3392421c5624713c9a19fe781f651f8a50"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -29,6 +52,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2d344210a0d5c90722cb052f5f893ee50ee6b422990dcefc8e89b2c482f5ff80"
+  inputs-digest = "c6db2154e000a921975096683c4e4632465bfce21fdd14a96f03d9b209b08d30"
   solver-name = "gps-cdcl"
   solver-version = 1

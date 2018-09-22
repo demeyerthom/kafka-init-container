@@ -1,74 +1,71 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/demeyerthom/kafka-init-container/pkg/configurator"
+	"github.com/alecthomas/kingpin"
 	"github.com/demeyerthom/kafka-init-container/pkg/models"
+	"github.com/demeyerthom/kafka-init-container/pkg/topic"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
-	"net"
+	"os"
 )
 
-const (
-	KafkaDir = "configuration"
+var (
+	kafkaDir = kingpin.Flag("configuration-dir", "the directory containing all the configuration files").
+		Default("configuration").Envar("CONFIGURATION_DIR").String()
 )
+
+func init() {
+	kingpin.Parse()
+
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.DebugLevel)
+}
 
 func main() {
-
-	files, err := ioutil.ReadDir(KafkaDir)
+	files, err := ioutil.ReadDir(*kafkaDir)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatalf("An error occurred while reading files: %s", err)
 	}
 
 	for _, f := range files {
 		configuration := models.Settings{}
 
-		yamlFile, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", KafkaDir, f.Name()))
+		file := fmt.Sprintf("%s/%s", *kafkaDir, f.Name())
+		yamlFile, err := ioutil.ReadFile(file)
 		if err != nil {
-			log.Fatal(err)
+			log.WithError(err).WithField("fileName", file).Fatalf("An error occurred while reading file %s: %s", file, err)
 		}
 
 		err = yaml.Unmarshal(yamlFile, &configuration)
 		if err != nil {
-			log.Fatal(err)
+			log.WithError(err).WithField("fileName", file).Fatalf("An error occurred while unmarshalling file %s: %s", file, err)
 		}
 
-		pingZookeeper(configuration.Zookeeper)
+		lister := topic.NewTopicLister(configuration.Zookeeper)
 
-		topicConfigurator := configurator.NewTopicConfigurator(configuration.Zookeeper)
-		updateTopics(topicConfigurator, configuration.Topics)
+		list := lister.GetTopicList()
+
+		topicCreator := topic.NewTopicCreator(configuration.Zookeeper, true)
+
+		for _, configTopic := range configuration.Topics {
+			if contains(list, configTopic.Name) {
+				log.Warnf("Topic %s should be updated; not implemented yet", configTopic.Name)
+			} else {
+				topicCreator.CreateTopic(configTopic)
+			}
+		}
 	}
 }
 
-func pingZookeeper(zookeeperAddr string) {
-	var continuePing = true
-
-	for continuePing {
-		_, err := net.Dial("tcp", zookeeperAddr)
-
-		if err == nil {
-			log.Print("Online")
-			continuePing = false
-			continue
-		}
-
-		log.Print("Connection error:", err)
+func contains(slice []string, item string) bool {
+	set := make(map[string]struct{}, len(slice))
+	for _, s := range slice {
+		set[s] = struct{}{}
 	}
-}
 
-func updateTopics(configurator configurator.TopicConfigurator, topics []models.Topic) {
-	for _, topic := range topics {
-		cmd := configurator.CreateTopicCommand(topic)
-		cmdOutput := &bytes.Buffer{}
-		cmd.Stdout = cmdOutput
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("An error occured while updating: %s %s", err, string(cmdOutput.Bytes()))
-		}
-
-		log.Print(string(cmdOutput.Bytes()))
-		log.Print(topic)
-	}
+	_, ok := set[item]
+	return ok
 }

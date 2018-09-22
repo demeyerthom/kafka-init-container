@@ -15,8 +15,10 @@ services:
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     - ./docker/kafka:/kafka
-  init-container:
-    build: .
-    image: init-container:latest
-    volumes:
-    - ./configuration:/configuration
+  manager:
+    image: sheepkiller/kafka-manager
+    ports:
+    - 9000:9000
+    environment:
+      ZK_HOSTS: zookeeper:2181
+      APPLICATION_SECRET: letmein
